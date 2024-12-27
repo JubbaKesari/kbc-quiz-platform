@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KBC Style Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(180deg, #040b40, #1a1f4c);
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Hexagonal background */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("C:\Users\LENOVO\Desktop\New folder\html\image.png"); /* Hexagonal pattern image */
+            opacity: 0.2;
+            z-index: -1;
+            background-size: cover;
+        }
+
+        h1 {
+            color: #ffd700;
+            text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ff9900;
+        }
+
+        .question {
+            font-size: 1.8rem;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: rgba(26, 26, 76, 0.9);
+            border: 2px solid #00ffcc;
+            border-radius: 15px;
+            box-shadow: 0 0 20px #00ffcc;
+            width: 80%;
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .options button {
+            width: 40%;
+            padding: 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            background-color: #00264d;
+            color: white;
+            border: 2px solid #00ffcc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #00ffcc;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .options button:hover {
+            background-color: #003366;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #00ffcc;
+        }
+
+        .options button.selected {
+            background-color: #008000;
+            border-color: #00ff00;
+            box-shadow: 0 0 20px #00ff00;
+            cursor: not-allowed;
+        }
+
+        .options button:disabled {
+            background-color: #1a1a4c;
+            border-color: #444;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: rgba(26, 26, 76, 0.9);
+            border: 2px solid #ffcc00;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #ffcc00;
+            width: fit-content;
+        }
+
+        .result {
+            font-size: 1.5rem;
+            margin-top: 20px;
+            color: #0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kaun Banega Crorepati Quiz</h1>
+    <div class="question" id="question">What is the capital of France?</div>
+    <div class="options">
+        <button id="optionA" onclick="selectOption('A')" disabled>A. Paris</button>
+        <button id="optionB" onclick="selectOption('B')" disabled>B. London</button>
+        <button id="optionC" onclick="selectOption('C')" disabled>C. Rome</button>
+        <button id="optionD" onclick="selectOption('D')" disabled>D. Berlin</button>
+    </div>
+    <div class="timer" id="timer">Timer: 0.000 seconds</div>
+    <div class="result" id="result"></div>
+
+    <script>
+        let startTime;
+        let interval;
+        let isOptionSelected = false;
+
+        function listenForStartSignal() {
+            const eventSource = new EventSource('http://localhost:3000/events');
+
+            eventSource.onmessage = function(event) {
+                console.log('Received event:', event.data);
+                if (event.data === 'start') {
+                    startQuiz();
+                }
+            };
+
+            eventSource.onerror = function(error) {
+                console.error('Error in EventSource:', error);
+            };
+        }
+
+        function startQuiz() {
+            console.log('Quiz started! Timer initiated.');
+            const timerElement = document.getElementById('timer');
+            let start = performance.now();
+
+            interval = setInterval(() => {
+                const now = performance.now();
+                const elapsedTime = ((now - start) / 1000).toFixed(3);
+                timerElement.textContent = `Timer: ${elapsedTime} seconds`;
+            }, 10);
+
+            const buttons = document.querySelectorAll('.options button');
+            buttons.forEach(button => button.disabled = false);
+
+            startTime = performance.now();
+        }
+
+        function stopTimer() {
+            clearInterval(interval);
+        }
+
+        function selectOption(option) {
+            if (isOptionSelected) return;
+
+            stopTimer();
+            const endTime = performance.now();
+            const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+
+            isOptionSelected = true;
+            document.getElementById(`option${option}`).classList.add('selected');
+            document.getElementById('result').textContent = `You selected option ${option} and took ${timeTaken} seconds to answer.`;
+
+            const buttons = document.querySelectorAll('.options button');
+            buttons.forEach(button => button.disabled = true);
+        }
+
+        listenForStartSignal();
+    </script>
+</body>
+</html>

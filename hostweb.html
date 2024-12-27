@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host Control Panel</title>
+    <style>
+        /* Add your styling here */
+    </style>
+</head>
+<body>
+    <h1>Host Control Panel</h1>
+
+    <!-- Inputs for Quiz Question and Options -->
+    <div>
+        <label for="question">Quiz Question:</label>
+        <input type="text" id="question" value="What is the capital of France?">
+    </div>
+    <div>
+        <label for="optionA">Option A:</label>
+        <input type="text" id="optionA" value="Paris">
+    </div>
+    <div>
+        <label for="optionB">Option B:</label>
+        <input type="text" id="optionB" value="London">
+    </div>
+    <div>
+        <label for="optionC">Option C:</label>
+        <input type="text" id="optionC" value="Rome">
+    </div>
+    <div>
+        <label for="optionD">Option D:</label>
+        <input type="text" id="optionD" value="Berlin">
+    </div>
+
+    <button onclick="updateQuiz()">Update Quiz</button>
+    <button onclick="sendStartSignal()">Start Timer</button>
+
+    <script>
+        function sendStartSignal() {
+            fetch('http://localhost:3000/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: 'start' })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Timer started successfully!');
+                } else {
+                    alert('Failed to start timer.');
+                }
+            })
+            .catch(error => {
+                console.error('Network error:', error);
+            });
+        }
+
+        function updateQuiz() {
+            // Get values from input fields
+            const question = document.getElementById('question').value;
+            const options = {
+                A: document.getElementById('optionA').value,
+                B: document.getElementById('optionB').value,
+                C: document.getElementById('optionC').value,
+                D: document.getElementById('optionD').value
+            };
+
+            // Ensure the data is valid
+            if (!question || !options.A || !options.B || !options.C || !options.D) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            // Send update request to the server
+            fetch('http://localhost:3000/updateQuiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ question, options })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Quiz updated successfully!') {
+                    alert('Quiz updated successfully!');
+                } else {
+                    alert('Failed to update quiz. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating quiz:', error);
+                alert('Failed to update quiz. Please check the console for errors.');
+            });
+        }
+    </script>
+</body>
+</html>
